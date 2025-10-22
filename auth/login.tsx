@@ -8,10 +8,10 @@ export default function Login({ onLogin, onRegister }: { onLogin: () => void; on
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}> 
       <View style={styles.logoWrap}>
-        <Image source={require('../images/login logo.png')} style={styles.logo} />
+        <Image source={require('../images/kklogo.png')} style={styles.logo} />
       </View>
 
-      <Text style={styles.title}>Welcome to CHO Care</Text>
+      <Text style={styles.title}>Welcome to {'\n'} Konek Kalusugan</Text>
 
       <View style={styles.buttons}>
         <TouchableOpacity style={styles.loginBtn} onPress={onLogin}>
@@ -44,10 +44,11 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   title: {
-    marginTop: 24,
-    fontSize: 28,
+    marginTop: 20,
+    fontSize: 35,
     fontWeight: '700',
     color: '#1F2A37',
+    textAlign: 'center',
   },
   buttons: {
     width: '90%',

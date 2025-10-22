@@ -21,7 +21,7 @@ import Home from './screens/home';
 import ProgramDetails from './screens/programDetails';
 import Programs from './screens/programs';
 // import RequestHistory from './screens/requestHistory';
-import RecentPrograms from './screens/recentPrograms';
+// import RecentPrograms from './screens/recentPrograms'; // File removed
 import Settings from './screens/settings';
 import EditProfile from './screens/editProfile';
 import Account from './screens/account';
@@ -30,6 +30,9 @@ import Notifications from './screens/notifications';
 import NotificationCenter, { type NotificationItem } from './screens/notificationCenter';
 import HelpFaq from './screens/helpFaq';
 import ContactSupport from './screens/contactSupport';
+import MedicineRequestPortal from './screens/medicineRequestPortal';
+import MedicineRequestForm from './screens/medicineRequestForm';
+import MedicineRequestHistory from './screens/medicineRequestHistory';
 
 const introPages = [
   {
@@ -69,7 +72,10 @@ function AppContent() {
     | 'Home'
     | 'ProgramDetails'
     | 'Programs'
-    | 'RecentPrograms'
+    | 'MedicineRequestPortal'
+    | 'MedicineRequestForm'
+    | 'RequestHistory'
+    | 'MedicineRequestHistory'
     | 'Settings'
     | 'EditProfile'
     | 'Account'
@@ -89,11 +95,76 @@ function AppContent() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notifFlags, setNotifFlags] = useState<Record<string, boolean>>({});
   const [userProfile, setUserProfile] = useState<{ name: string; email: string; avatarUri?: string } | undefined>(undefined);
+  
+  // Uploaded Prescription State
+  const [uploadedPrescription, setUploadedPrescription] = useState<{
+    id: string;
+    uri: string;
+    name: string;
+    type: string;
+  } | null>(null);
+  
+  // Request History State
+  const [requestHistory, setRequestHistory] = useState<Array<{
+    id: string;
+    patientName: string;
+    date: string;
+    medicines: string[];
+    deliveryAddress: string;
+    status: string;
+    prescriptionImage: any;
+    emailAddress: string;
+    phoneNumber: string;
+    additionalNotes: string;
+  }>>([]);
 
   const current = stack[stack.length - 1];
   const push = (s: Screen) => setStack((st) => [...st, s]);
   const pop = () => setStack((st) => (st.length > 1 ? st.slice(0, st.length - 1) : st));
   const replace = (s: Screen) => setStack((st) => (st.length ? [...st.slice(0, st.length - 1), s] : [s]));
+
+  // Function to add program reminder notification
+  const addProgramReminder = (programName: string, programDate: string) => {
+    const newNotification: NotificationItem = {
+      id: `reminder-${Date.now()}`,
+      title: 'Program Reminder Set',
+      body: `You'll be reminded about "${programName}" on ${programDate}`,
+      read: false,
+      icon: require('./images/icons/bell.png'),
+      time: 'Just now',
+    };
+    
+    setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  // Function to add new request to history
+  const addRequestToHistory = (requestData: {
+    patientName: string;
+    emailAddress: string;
+    phoneNumber: string;
+    deliveryAddress: string;
+    additionalNotes: string;
+  }) => {
+    const newRequest = {
+      id: `#${String(requestHistory.length + 1).padStart(4, '0')}`,
+      patientName: requestData.patientName,
+      date: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      medicines: ['Prescription medicines'], // Placeholder - could be enhanced to track actual medicines
+      deliveryAddress: requestData.deliveryAddress,
+      status: 'pending', // Default status - pending until admin approval
+      prescriptionImage: uploadedPrescription ? { uri: uploadedPrescription.uri } : require('./images/icons/capsule.png'),
+      emailAddress: requestData.emailAddress,
+      phoneNumber: requestData.phoneNumber,
+      additionalNotes: requestData.additionalNotes,
+    };
+    
+    setRequestHistory(prev => [newRequest, ...prev]); // Add to beginning of array
+    setUploadedPrescription(null); // Clear the uploaded prescription after adding to history
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setShowSplash(false), 1500);
@@ -128,69 +199,69 @@ function AppContent() {
     ]);
   };
 
-  // Schedule-based notifications (reminders and completion)
-  useEffect(() => {
-    const DAY = 24 * 60 * 60 * 1000;
-    const THRESHOLD = DAY; // "near" = within 1 day
+  // Schedule-based notifications (reminders and completion) - Disabled
+  // useEffect(() => {
+  //   const DAY = 24 * 60 * 60 * 1000;
+  //   const THRESHOLD = DAY; // "near" = within 1 day
 
-    const schedule = {
-      wellness: {
-        title: 'Barangay Wellness Check',
-        start: new Date('2025-09-06T08:00:00'),
-        end: new Date('2025-09-06T12:00:00'),
-        icon: require('./images/icons/BWC.png'),
-      },
-      nutri: {
-        title: 'NutriLIFE Feeding Program',
-        start: new Date('2025-09-09T10:00:00'),
-        end: new Date('2025-09-09T12:00:00'),
-        icon: require('./images/icons/nutri.png'),
-      },
-      anti: {
-        title: 'Anti-Smoking & Substance Abuse Awareness',
-        start: new Date('2025-03-02T08:00:00'),
-        end: new Date('2025-03-02T15:00:00'),
-        icon: require('./images/icons/anti-smoking.png'),
-      },
-    } as const;
+  //   const schedule = {
+  //     wellness: {
+  //       title: 'Barangay Wellness Check',
+  //       start: new Date('2025-09-06T08:00:00'),
+  //       end: new Date('2025-09-06T12:00:00'),
+  //       icon: require('./images/icons/BWC.png'),
+  //     },
+  //     nutri: {
+  //       title: 'NutriLIFE Feeding Program',
+  //       start: new Date('2025-09-09T10:00:00'),
+  //       end: new Date('2025-09-09T12:00:00'),
+  //       icon: require('./images/icons/nutri.png'),
+  //     },
+  //     anti: {
+  //       title: 'Anti-Smoking & Substance Abuse Awareness',
+  //       start: new Date('2025-03-02T08:00:00'),
+  //       end: new Date('2025-03-02T15:00:00'),
+  //       icon: require('./images/icons/anti-smoking.png'),
+  //     },
+  //   } as const;
 
-    const check = () => {
-      const now = new Date().getTime();
+  //   const check = () => {
+  //     const now = new Date().getTime();
 
-      (Object.keys(schedule) as Array<keyof typeof schedule>).forEach((key) => {
-        const item = schedule[key];
-        const startMs = item.start.getTime();
-        const endMs = item.end.getTime();
+  //     (Object.keys(schedule) as Array<keyof typeof schedule>).forEach((key) => {
+  //       const item = schedule[key];
+  //       const startMs = item.start.getTime();
+  //       const endMs = item.end.getTime();
 
-        // Reminder: within threshold before start
-        const remKey = `${key}_reminder`;
-        if (!notifFlags[remKey] && now < startMs && startMs - now <= THRESHOLD) {
-          addNotification({
-            title: 'Reminder: ' + item.title,
-            body: 'Starts ' + fmtTime(item.start),
-            icon: item.icon,
-          });
-          setNotifFlags((f) => ({ ...f, [remKey]: true }));
-        }
+  //       // Reminder: within threshold before start
+  //       const remKey = `${key}_reminder`;
+  //       if (!notifFlags[remKey] && now < startMs && startMs - now <= THRESHOLD) {
+  //         addNotification({
+  //           title: 'Reminder: ' + item.title,
+  //           body: 'Starts ' + fmtTime(item.start),
+  //           icon: item.icon,
+  //         });
+  //         setNotifFlags((f) => ({ ...f, [remKey]: true }));
+  //       }
 
-        // Completed: after end
-        const compKey = `${key}_completed`;
-        if (!notifFlags[compKey] && now >= endMs) {
-          addNotification({
-            title: 'Completed: ' + item.title,
-            body: 'The program has ended.',
-            icon: item.icon,
-          });
-          setNotifFlags((f) => ({ ...f, [compKey]: true }));
-        }
-      });
-    };
+  //       // Completed: after end
+  //       const compKey = `${key}_completed`;
+  //       if (!notifFlags[compKey] && now >= endMs) {
+  //         addNotification({
+  //           title: 'Completed: ' + item.title,
+  //           body: 'The program has ended.',
+  //           icon: item.icon,
+  //         });
+  //         setNotifFlags((f) => ({ ...f, [compKey]: true }));
+  //       }
+  //     });
+  //   };
 
-    // Run immediately and then every minute
-    check();
-    const id = setInterval(check, 60_000);
-    return () => clearInterval(id);
-  }, [notifFlags]);
+  //   // Run immediately and then every minute
+  //   check();
+  //   const id = setInterval(check, 60_000);
+  //   return () => clearInterval(id);
+  // }, [notifFlags]);
 
   useEffect(() => {
     if (!showSplash) {
@@ -208,7 +279,7 @@ function AppContent() {
   return (
     <View style={[styles.container, { paddingTop: safeAreaInsets.top, paddingBottom: safeAreaInsets.bottom, paddingLeft: safeAreaInsets.left, paddingRight: safeAreaInsets.right }]}> 
       {showSplash ? (
-        <Image source={require('./images/logo.png')} style={styles.logo} />
+        <Image source={require('./images/kklogo.png')} style={styles.logo} />
       ) : current === 'ProgramDetails' ? (
         <ProgramDetails onBack={pop} program={selectedProgram} />
       ) : current === 'Programs' ? (
@@ -219,21 +290,52 @@ function AppContent() {
           onViewOngoing={() => { setSelectedProgram('wellness'); push('ProgramDetails'); }}
           onViewUpcoming={() => { setSelectedProgram('nutri'); push('ProgramDetails'); }}
           onViewCompleted={() => { setSelectedProgram('anti'); push('ProgramDetails'); }}
-          onGoRequests={() => push('RecentPrograms')}
+          onGoRequests={() => push('MedicineRequestPortal')}
           onGoSettings={() => push('Settings')}
+          onAddProgramReminder={addProgramReminder}
         />
-      ) : current === 'RecentPrograms' ? (
-        <RecentPrograms
+      ) : current === 'MedicineRequestPortal' ? (
+        <MedicineRequestPortal
           onBack={pop}
           onGoHome={() => push('Home')}
           onGoPrograms={() => push('Programs')}
           onGoSettings={() => push('Settings')}
+          onNext={() => push('MedicineRequestForm')}
+          onGoNotifications={() => push('RequestHistory')}
+          onGoHistory={() => push('MedicineRequestHistory')}
+          uploadedPrescription={uploadedPrescription}
+          setUploadedPrescription={setUploadedPrescription}
+        />
+      ) : current === 'MedicineRequestForm' ? (
+        <MedicineRequestForm
+          onBack={pop}
+          onGoHome={() => push('Home')}
+          onGoPrograms={() => push('Programs')}
+          onGoSettings={() => push('Settings')}
+          onSubmit={() => {
+            // Navigate back to home after successful submission
+            push('Home');
+          }}
+          onSubmitAnother={() => {
+            // Navigate back to Medicine Request Portal for another request
+            push('MedicineRequestPortal');
+          }}
+          onAddToHistory={addRequestToHistory}
+        />
+      ) : current === 'MedicineRequestHistory' ? (
+        <MedicineRequestHistory
+          onBack={pop}
+          onGoHome={() => push('Home')}
+          onGoPrograms={() => push('Programs')}
+          onGoSettings={() => push('Settings')}
+          onNewRequest={() => push('MedicineRequestPortal')}
+          requestHistory={requestHistory}
         />
       ) : current === 'Settings' ? (
         <Settings
           onGoHome={() => push('Home')}
           onGoPrograms={() => push('Programs')}
-          onGoRequests={() => push('RecentPrograms')}
+          onGoRequests={() => push('MedicineRequestPortal')}
           onGoEditProfile={() => push('EditProfile')}
           onGoAccount={() => push('Account')}
           onGoChangePassword={() => push('ChangePassword')}
@@ -280,7 +382,7 @@ function AppContent() {
         <Home
           onViewDetails={() => { setSelectedProgram('wellness'); push('ProgramDetails'); }}
           onGoPrograms={() => push('Programs')}
-          onGoRequests={() => push('RecentPrograms')}
+          onGoRequests={() => push('MedicineRequestPortal')}
           onGoSettings={() => push('Settings')}
           onGoNotificationCenter={() => push('NotificationCenter')}
           profile={userProfile}

@@ -80,30 +80,55 @@ export default function NotificationCenter({ onBack, items, onToggleRead, onMark
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 120 }]}> 
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}> 
         {displayItems.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Image source={require('../images/icons/bell1.png')} style={styles.emptyIcon} />
+            <View style={styles.emptyIconContainer}>
+              <Image source={require('../images/icons/bell1.png')} style={styles.emptyIcon} />
+            </View>
             <Text style={styles.emptyTitle}>No Notifications</Text>
-            <Text style={styles.emptySub}>You’re all caught up.</Text>
+            <Text style={styles.emptySub}>You're all caught up! We'll notify you when there's something new.</Text>
           </View>
         ) : (
-          displayItems.map((n) => (
-            <TouchableOpacity key={n.id} style={[styles.card, n.read ? styles.cardRead : null]} onPress={() => handleToggleRead(n.id)}>
-              <View style={styles.cardRow}>
-                <Image source={n.icon} style={styles.cardIcon} />
-                <View style={{ flex: 1 }}>
-                  <View style={styles.cardHeaderRow}>
-                    {!n.read && <View style={styles.unreadDot} />}
-                    <Text style={[styles.cardTitle, n.read && styles.cardTitleRead]}>{n.title}</Text>
-                    <Text style={styles.cardTime}>{n.time}</Text>
+          <View style={styles.notificationsList}>
+            {displayItems.map((n) => (
+              <TouchableOpacity 
+                key={n.id} 
+                style={[styles.notificationCard, n.read ? styles.notificationCardRead : styles.notificationCardUnread]} 
+                onPress={() => handleToggleRead(n.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.notificationContent}>
+                  <View style={styles.notificationHeader}>
+                    <View style={styles.iconAndDot}>
+                      <View style={[styles.notificationIconContainer, n.read && styles.notificationIconContainerRead]}>
+                        <Image source={n.icon || require('../images/icons/bell1.png')} style={styles.notificationIcon} />
+                      </View>
+                      {!n.read && <View style={styles.unreadIndicator} />}
+                    </View>
+                    <View style={styles.notificationText}>
+                      <View style={styles.titleRow}>
+                        <Text style={[styles.notificationTitle, n.read && styles.notificationTitleRead]} numberOfLines={1}>
+                          {n.title}
+                        </Text>
+                        <Text style={styles.notificationTime}>{n.time}</Text>
+                      </View>
+                      <Text style={[styles.notificationBody, n.read && styles.notificationBodyRead]} numberOfLines={2}>
+                        {n.body}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.cardBody, n.read && styles.cardBodyRead]}>{n.body}</Text>
                 </View>
-              </View>
-              <Text style={styles.tapHint}>{n.read ? 'Tap to mark as unread' : 'Tap to mark as read'}</Text>
-            </TouchableOpacity>
-          ))
+                <View style={styles.notificationFooter}>
+                  <View style={[styles.statusIndicator, n.read ? styles.statusRead : styles.statusUnread]}>
+                    <Text style={[styles.statusText, n.read ? styles.statusTextRead : styles.statusTextUnread]}>
+                      {n.read ? 'Read' : 'New'}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -111,33 +136,235 @@ export default function NotificationCenter({ onBack, items, onToggleRead, onMark
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  headerBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerIcon: { width: 22, height: 22, resizeMode: 'contain' },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#0B1330', fontWeight: '800', fontSize: 20 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  headerAction: { color: '#2563EB', fontWeight: '700' },
-  countBadge: { marginRight: 10, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  countBadgeText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F8FAFC' 
+  },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 16, 
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1, 
+    borderBottomColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  headerBtn: { 
+    width: 44, 
+    height: 44, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    borderRadius: 12,
+  },
+  headerIcon: { 
+    width: 24, 
+    height: 24, 
+    resizeMode: 'contain' 
+  },
+  headerTitle: { 
+    flex: 1, 
+    textAlign: 'center', 
+    color: '#1F2937', 
+    fontWeight: '700', 
+    fontSize: 18,
+    marginHorizontal: 16,
+  },
+  headerRight: { 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerAction: { 
+    color: '#6366F1', 
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  countBadge: { 
+    backgroundColor: '#EF4444', 
+    borderRadius: 12, 
+    minWidth: 24, 
+    height: 24, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingHorizontal: 8,
+  },
+  countBadgeText: { 
+    color: '#FFFFFF', 
+    fontWeight: '700', 
+    fontSize: 12 
+  },
 
-  scroll: { paddingHorizontal: 16 },
+  scroll: { 
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
 
-  card: { marginTop: 12, backgroundColor: '#F5F7FB', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  cardRead: { backgroundColor: '#FAFAFA' },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  cardIcon: { width: 22, height: 22, resizeMode: 'contain', marginTop: 2 },
-  cardHeaderRow: { flexDirection: 'row', alignItems: 'center' },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#34D399', marginRight: 6 },
-  cardTitle: { flex: 1, fontWeight: '800', color: '#0B1330' },
-  cardTitleRead: { color: '#6B7280' },
-  cardTime: { color: '#9CA3AF', marginLeft: 8 },
-  cardBody: { marginTop: 6, color: '#111827' },
-  cardBodyRead: { color: '#9CA3AF' },
-  tapHint: { marginTop: 8, color: '#6B7280', fontSize: 12 },
+  // Empty State
+  emptyWrap: { 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 32,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  emptyIcon: { 
+    width: 32, 
+    height: 32, 
+    resizeMode: 'contain', 
+    tintColor: '#9CA3AF' 
+  },
+  emptyTitle: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#1F2937',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySub: { 
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
 
-  emptyWrap: { alignItems: 'center', marginTop: 40 },
-  emptyIcon: { width: 40, height: 40, resizeMode: 'contain', tintColor: '#9CA3AF' },
-  emptyTitle: { marginTop: 12, fontSize: 16, fontWeight: '800', color: '#0B1330' },
-  emptySub: { marginTop: 4, color: '#6B7280' },
+  // Notifications List
+  notificationsList: {
+    gap: 12,
+  },
+
+  // Notification Card
+  notificationCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+  },
+  notificationCardUnread: {
+    borderColor: '#6366F1',
+    backgroundColor: '#FEFEFE',
+  },
+  notificationCardRead: {
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FAFAFA',
+  },
+
+  // Notification Content
+  notificationContent: {
+    marginBottom: 12,
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  iconAndDot: {
+    position: 'relative',
+  },
+  notificationIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationIconContainerRead: {
+    backgroundColor: '#F3F4F6',
+  },
+  notificationIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    tintColor: '#6366F1',
+  },
+  unreadIndicator: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+
+  // Notification Text
+  notificationText: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  notificationTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginRight: 8,
+  },
+  notificationTitleRead: {
+    color: '#6B7280',
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  notificationBody: {
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+  notificationBodyRead: {
+    color: '#9CA3AF',
+  },
+
+  // Notification Footer
+  notificationFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  statusIndicator: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusUnread: {
+    backgroundColor: '#EEF2FF',
+  },
+  statusRead: {
+    backgroundColor: '#F3F4F6',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusTextUnread: {
+    color: '#6366F1',
+  },
+  statusTextRead: {
+    color: '#6B7280',
+  },
 });

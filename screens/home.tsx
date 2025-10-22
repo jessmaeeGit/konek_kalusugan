@@ -2,37 +2,34 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ANNOUNCEMENTS = [
+const ANNOUNCEMENTS: Array<{
+  title: string;
+  body: string;
+}> = [
   {
-    title: '💊 Medicine Stock Update',
-    body:
-      'Paracetamol 500mg is now available again at your Barangay Health Station. Please request responsibly and avoid duplicate requests.',
+    title: "🧡 Medicine Stock Update",
+    body: "Paracetamol 500mg is now available again at your Barangay Health Station. Please request responsibly and avoid duplicate requests."
   },
   {
-    title: '🎗️ Health Program Reminder',
-    body:
-      'Join our Free Vaccination Drive this Saturday at the Barangay Hall, 8:00 AM – 4:00 PM. Bring your Barangay ID and vaccination card.',
+    title: "💉 Health Program Reminder", 
+    body: "Join our Free Vaccination Drive this Saturday at the Barangay Hall, 8:00 AM - 4:00 PM. Bring your Barangay ID and vaccination card."
   },
   {
-    title: '❗ Important Notice',
-    body:
-      'Residents can only request medicines once every 7 days per prescription. This is to ensure fair distribution to all.',
+    title: "❗ Important Notice",
+    body: "Residents can only request medicines once every 7 days per prescription. This is to ensure fair distribution to all."
   },
   {
-    title: '⭐ New Program Launch',
-    body:
-      'The Healthy Heart Program is now open for registration! Check the Programs page for full details and requirements.',
+    title: "🆕 New Program Launch",
+    body: "The Healthy Heart Program is now open for registration. Check the Programs page for full details and requirements."
   },
   {
-    title: '⚠️ Emergency Alert',
-    body:
-      'Due to heavy rains and flooding, medicine distribution will be moved to the Barangay Gym. Stay safe and follow official advisories.',
+    title: "⚠️ Emergency Alert",
+    body: "Due to heavy rains and flooding, medicine distribution will be moved to Monday 6pm. Stay safe and follow official advisories."
   },
   {
-    title: '💚 General Wellness Tip',
-    body:
-      'Drink 8–10 glasses of water daily and wash your hands regularly. Small habits keep you and your family healthy.',
-  },
+    title: "✅ General Wellness Tip",
+    body: "Drink 8-10 glasses of water daily and get at least 7-8 hours of sleep to keep you and your family healthy."
+  }
 ];
 
 export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSettings, onGoNotificationCenter, profile, notificationCount }: { onViewDetails?: () => void; onGoPrograms?: () => void; onGoRequests?: () => void; onGoSettings?: () => void; onGoNotificationCenter?: () => void; profile?: { name: string; email: string; avatarUri?: string }; notificationCount?: number }) {
@@ -81,7 +78,7 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
         <TouchableOpacity style={[styles.pill, { backgroundColor: '#C8DAFF', alignSelf: 'flex-start', marginTop: 10 }]} onPress={onGoRequests}>
           <View style={styles.pillInner}>
             <Image source={require('../images/icons/plus-01.png')} style={styles.pillPlus} />
-            <Text style={styles.pillText}>Recent Programs</Text>
+            <Text style={styles.pillText}>Request Medicine</Text>
           </View>
         </TouchableOpacity>
 
@@ -91,21 +88,23 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
         </View>
         <Text style={styles.sectionSub}>Official announcements from your Barangay and CHO are posted here for your guidance.</Text>
 
-        <View style={styles.announcementCard}>
-          <TouchableOpacity onPress={prevAnnouncement}>
-            <Image source={require('../images/icons/chevron-left.png')} style={styles.chevSide} />
-          </TouchableOpacity>
-          <View style={styles.annContent}>
-            <View style={styles.annHeader}>
-              <Image source={require('../images/icons/meds.png')} style={styles.annIcon} />
-              <Text style={styles.annTitle}>{currentAnn.title}</Text>
+        {ANNOUNCEMENTS.length > 0 && (
+          <View style={styles.announcementCard}>
+            <TouchableOpacity onPress={prevAnnouncement}>
+              <Image source={require('../images/icons/chevron-left.png')} style={styles.chevSide} />
+            </TouchableOpacity>
+            <View style={styles.annContent}>
+              <View style={styles.annHeader}>
+                <Image source={require('../images/icons/meds.png')} style={styles.annIcon} />
+                <Text style={styles.annTitle}>{currentAnn.title}</Text>
+              </View>
+              <Text style={styles.annBody}>{currentAnn.body}</Text>
             </View>
-            <Text style={styles.annBody}>{currentAnn.body}</Text>
+            <TouchableOpacity onPress={nextAnnouncement}>
+              <Image source={require('../images/icons/chevron-right.png')} style={styles.chevSide} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={nextAnnouncement}>
-            <Image source={require('../images/icons/chevron-right.png')} style={styles.chevSide} />
-          </TouchableOpacity>
-        </View>
+        )}
 
         <View style={[styles.titleRow, { marginTop: 18 }]}>
           <Image source={require('../images/icons/heart hand.png')} style={styles.titleIcon} />
@@ -141,6 +140,25 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
               <Text style={styles.actionGreenText}>View Details</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={[styles.titleRow, { marginTop: 18 }]}>
+          <Image source={require('../images/icons/orders.png')} style={styles.titleIcon} />
+          <Text style={styles.sectionTitle}>Your Request History</Text>
+        </View>
+        <Text style={styles.sectionSub}>Easily monitor your medicine requests and see updates from CHO Pharmacy and Barangay Health Station.</Text>
+
+        <View style={styles.requestCard}>
+          <View style={styles.requestBadge}><Text style={styles.requestBadgeText}>Approved</Text></View>
+          <View style={styles.requestHeaderRow}>
+            <Image source={require('../images/icons/capsule.png')} style={styles.requestIcon} />
+            <Text style={styles.requestTitle}>Medicine Request</Text>
+          </View>
+          <View style={styles.requestList}>
+            <Text style={styles.requestItem}>• 10 tablets Paracetamol 500mg</Text>
+            <Text style={styles.requestItem}>• 20 capsules Amoxicillin 500mg</Text>
+          </View>
+          <Text style={styles.requestDate}>September 1, 2025, 8:00 AM</Text>
         </View>
       </ScrollView>
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewUpcoming, onViewCompleted, onGoHome, onGoRequests, onGoSettings }: { onBack?: () => void; onViewDetails?: () => void; onViewOngoing?: () => void; onViewUpcoming?: () => void; onViewCompleted?: () => void; onGoHome?: () => void; onGoRequests?: () => void; onGoSettings?: () => void }) {
+export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewUpcoming, onViewCompleted, onGoHome, onGoRequests, onGoSettings, onAddProgramReminder }: { onBack?: () => void; onViewDetails?: () => void; onViewOngoing?: () => void; onViewUpcoming?: () => void; onViewCompleted?: () => void; onGoHome?: () => void; onGoRequests?: () => void; onGoSettings?: () => void; onAddProgramReminder?: (programName: string, programDate: string) => void }) {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -29,6 +29,9 @@ export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewU
   const onRemindOngoing = () => {
     setRemindOngoing((prev) => {
       const next = !prev;
+      if (next && onAddProgramReminder) {
+        onAddProgramReminder('Barangay Wellness Check', 'October 22, 2025');
+      }
       Alert.alert(next ? 'Reminder set' : 'Reminder canceled', 'Barangay Wellness Check');
       return next;
     });
@@ -36,6 +39,9 @@ export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewU
   const onRemindUpcoming = () => {
     setRemindUpcoming((prev) => {
       const next = !prev;
+      if (next && onAddProgramReminder) {
+        onAddProgramReminder('NutriLIFE Feeding Program', 'September 9, 2025');
+      }
       Alert.alert(next ? 'Reminder set' : 'Reminder canceled', 'NutriLIFE Feeding Program');
       return next;
     });
@@ -66,14 +72,19 @@ export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewU
         </View>
 
         <View style={styles.filterRow}>
-          <TouchableOpacity style={styles.filterChip}><Text style={styles.filterText}>All</Text></TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.filterChip, query === '' && styles.filterChipActive]} 
+            onPress={() => setQuery('')}
+          >
+            <Text style={[styles.filterText, query === '' && styles.filterTextActive]}>All</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.filterChip}>
             <Image source={require('../images/icons/sort-vertical-02.png')} style={styles.filterIcon} />
             <Text style={styles.filterText}>Date</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.sectionDivider} />
+        {q === '' && <View style={styles.sectionDivider} />}
 
         {ongoingMatch && (
         <TouchableOpacity activeOpacity={0.9} style={styles.programCard} onPress={onViewOngoing ?? onViewDetails}>
@@ -107,7 +118,7 @@ export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewU
         </TouchableOpacity>
         )}
 
-        <View style={styles.sectionDivider} />
+        {q === '' && <View style={styles.sectionDivider} />}
 
         {upcomingMatch && (
         <TouchableOpacity activeOpacity={0.9} style={styles.programCardLight} onPress={onViewUpcoming ?? onViewDetails}>
@@ -143,7 +154,7 @@ export default function Programs({ onBack, onViewDetails, onViewOngoing, onViewU
         </TouchableOpacity>
         )}
 
-        <View style={styles.sectionDivider} />
+        {q === '' && <View style={styles.sectionDivider} />}
 
         {completedMatch && (
         <TouchableOpacity activeOpacity={0.9} style={styles.programCardLight} onPress={onViewCompleted ?? onViewDetails}>
@@ -206,13 +217,36 @@ const styles = StyleSheet.create({
   headerIcon: { width: 22, height: 22, resizeMode: 'contain' },
   headerTitle: { flex: 1, textAlign: 'center', color: '#0B1330', fontWeight: '800', fontSize: 20, marginTop: 16 },
   scroll: { paddingHorizontal: 16 },
-  searchWrap: { marginTop: 12, borderWidth: 2, borderColor: '#2ECC71', borderRadius: 72, paddingVertical: 5, paddingHorizontal: 150, flexDirection: 'row', alignItems: 'center' },
-  searchIcon: { width: 18, height: 18, resizeMode: 'contain', tintColor: '#6B7280'},
-  searchPlaceholder: { marginLeft: 1, color: '#9CA3AF',width: 150 },
+  searchWrap: { 
+    marginTop: 10, 
+    borderWidth: 2, 
+    borderColor: '#2ECC71', 
+    borderRadius: 7, 
+    paddingVertical: 1, 
+    paddingHorizontal: 16, 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  searchIcon: { 
+    width: 18, 
+    height: 18, 
+    resizeMode: 'contain', 
+    tintColor: '#000000',
+    marginRight: 12,
+  },
+  searchPlaceholder: { 
+    flex: 1, 
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '400',
+  },
   filterRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   filterChip: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderColor: '#2ECC71', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 12 },
+  filterChipActive: { backgroundColor: '#2ECC71' },
   filterIcon: { width: 16, height: 16, resizeMode: 'contain' },
   filterText: { color: '#0B1330', fontWeight: '700' },
+  filterTextActive: { color: '#FFFFFF' },
   sectionDivider: { height: 1, backgroundColor: '#E5E7EB', marginVertical: 12 },
 
   programCard: { marginTop: 4, backgroundColor: '#F5F7FB', borderRadius: 12, padding: 12 },
