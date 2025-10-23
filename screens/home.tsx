@@ -32,12 +32,61 @@ const ANNOUNCEMENTS: Array<{
   }
 ];
 
-export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSettings, onGoNotificationCenter, profile, notificationCount }: { onViewDetails?: () => void; onGoPrograms?: () => void; onGoRequests?: () => void; onGoSettings?: () => void; onGoNotificationCenter?: () => void; profile?: { name: string; email: string; avatarUri?: string }; notificationCount?: number }) {
+export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSettings, onGoNotificationCenter, onGoMedicineRequest, profile, notificationCount, requestHistory }: { onViewDetails?: () => void; onGoPrograms?: () => void; onGoRequests?: () => void; onGoSettings?: () => void; onGoNotificationCenter?: () => void; onGoMedicineRequest?: () => void; profile?: { name: string; email: string; avatarUri?: string }; notificationCount?: number; requestHistory?: Array<{
+  id: string;
+  patientName: string;
+  date: string;
+  medicines: string[];
+  deliveryAddress: string;
+  status: string;
+  prescriptionImage: any;
+  emailAddress: string;
+  phoneNumber: string;
+  additionalNotes: string;
+}> }) {
   const insets = useSafeAreaInsets();
   const [annIndex, setAnnIndex] = useState(0);
   const currentAnn = ANNOUNCEMENTS[annIndex];
   const prevAnnouncement = () => setAnnIndex((i) => (i - 1 + ANNOUNCEMENTS.length) % ANNOUNCEMENTS.length);
   const nextAnnouncement = () => setAnnIndex((i) => (i + 1) % ANNOUNCEMENTS.length);
+
+  // Get current date for programs
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Helper functions for request status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return '#10B981';
+      case 'rejected': return '#EF4444';
+      case 'pending': return '#F59E0B';
+      default: return '#6B7280';
+    }
+  };
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case 'approved': return '#D1FAE5';
+      case 'rejected': return '#FEE2E2';
+      case 'pending': return '#FEF3C7';
+      default: return '#F3F4F6';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved': return 'Approved';
+      case 'rejected': return 'Rejected';
+      case 'pending': return 'Pending';
+      default: return 'Unknown';
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}> 
@@ -62,10 +111,10 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
 
         <Text style={styles.sectionTitle}>Quick Action</Text>
         <View style={styles.quickRow}>
-          <TouchableOpacity style={[styles.pill, { backgroundColor: '#FFF3B0' }]}>
+          <TouchableOpacity style={[styles.pill, { backgroundColor: '#FFF3B0' }]} onPress={onGoMedicineRequest}>
             <View style={styles.pillInner}>
               <Image source={require('../images/icons/plus-01.png')} style={styles.pillPlus} />
-              <Text style={styles.pillText}>Announcements</Text>
+              <Text style={styles.pillText}>Request Medicine</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pill, { backgroundColor: '#FFD1D1' }]} onPress={onGoPrograms}>
@@ -75,12 +124,6 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
             </View>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[styles.pill, { backgroundColor: '#C8DAFF', alignSelf: 'flex-start', marginTop: 10 }]} onPress={onGoRequests}>
-          <View style={styles.pillInner}>
-            <Image source={require('../images/icons/plus-01.png')} style={styles.pillPlus} />
-            <Text style={styles.pillText}>Request Medicine</Text>
-          </View>
-        </TouchableOpacity>
 
         <View style={[styles.titleRow, { marginTop: 18 }]}>
           <Image source={require('../images/icons/announcement.png')} style={styles.titleIcon} />
@@ -124,7 +167,7 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
           </View>
           <View style={styles.infoRow}>
             <Image source={require('../images/icons/calendar.png')} style={styles.infoIcon} />
-            <Text style={styles.infoLink}>October 23, 2025</Text>
+            <Text style={styles.infoLink}>{getCurrentDate()}</Text>
           </View>
           <View style={styles.infoRow}>
             <Image source={require('../images/icons/clock.png')} style={styles.infoIcon} />
@@ -148,18 +191,53 @@ export default function Home({ onViewDetails, onGoPrograms, onGoRequests, onGoSe
         </View>
         <Text style={styles.sectionSub}>Easily monitor your medicine requests and see updates from CHO Pharmacy and Barangay Health Station.</Text>
 
-        <View style={styles.requestCard}>
-          <View style={styles.requestBadge}><Text style={styles.requestBadgeText}>Approved</Text></View>
-          <View style={styles.requestHeaderRow}>
-            <Image source={require('../images/icons/capsule.png')} style={styles.requestIcon} />
-            <Text style={styles.requestTitle}>Medicine Request</Text>
+        {/* Request History Cards */}
+        {requestHistory && requestHistory.length > 0 ? (
+          <View style={styles.requestHistoryContainer}>
+            {requestHistory.slice(0, 3).map((request) => (
+              <View key={request.id} style={styles.requestCard}>
+                <View style={[styles.requestBadge, { backgroundColor: getStatusBgColor(request.status) }]}>
+                  <Text style={[styles.requestBadgeText, { color: getStatusColor(request.status) }]}>
+                    {getStatusText(request.status)}
+                  </Text>
+                </View>
+                <View style={styles.requestHeaderRow}>
+                  <Image source={request.prescriptionImage} style={styles.requestIcon} />
+                  <View style={styles.requestHeaderText}>
+                    <Text style={styles.requestTitle}>Medicine Request</Text>
+                    <Text style={styles.requestId}>ID: {request.id}</Text>
+                  </View>
+                </View>
+                <View style={styles.requestList}>
+                  {request.medicines.slice(0, 2).map((medicine, index) => (
+                    <Text key={index} style={styles.requestItem}>• {medicine}</Text>
+                  ))}
+                  {request.medicines.length > 2 && (
+                    <Text style={styles.requestItem}>• +{request.medicines.length - 2} more</Text>
+                  )}
+                </View>
+                <Text style={styles.requestDate}>{request.date}</Text>
+              </View>
+            ))}
+            
+            {requestHistory.length > 3 && (
+              <TouchableOpacity style={styles.viewMoreButton} onPress={onGoRequests}>
+                <Text style={styles.viewMoreText}>View All Requests ({requestHistory.length})</Text>
+                <Image source={require('../images/icons/chevron-right.png')} style={styles.viewMoreIcon} />
+              </TouchableOpacity>
+            )}
           </View>
-          <View style={styles.requestList}>
-            <Text style={styles.requestItem}>• 10 tablets Paracetamol 500mg</Text>
-            <Text style={styles.requestItem}>• 20 capsules Amoxicillin 500mg</Text>
+        ) : (
+          <View style={styles.emptyRequestHistory}>
+            <Image source={require('../images/icons/orders.png')} style={styles.emptyIcon} />
+            <Text style={styles.emptyTitle}>No Request History</Text>
+            <Text style={styles.emptyMessage}>You haven't made any medicine requests yet. Start by creating your first request.</Text>
+            <TouchableOpacity style={styles.emptyButton} onPress={onGoMedicineRequest}>
+              <Text style={styles.emptyButtonText}>Make First Request</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.requestDate}>September 1, 2025, 8:00 AM</Text>
-        </View>
+        )}
+
       </ScrollView>
 
       <View style={[styles.tabBar, { paddingBottom: insets.bottom || 12 }]}> 
@@ -288,15 +366,133 @@ const styles = StyleSheet.create({
   actionGrayText: { color: '#6B7280', fontWeight: '700' },
   actionGreenText: { color: '#0B1330', fontWeight: '700' },
 
-  requestCard: { marginTop: 12, backgroundColor: '#F5F7FB', borderRadius: 12, padding: 12 },
-  requestBadge: { alignSelf: 'flex-start', backgroundColor: '#3CE281', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, marginBottom: 8 },
-  requestBadgeText: { color: '#0B1330', fontWeight: '700' },
-  requestHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  requestIcon: { width: 20, height: 20, resizeMode: 'contain' },
-  requestTitle: { fontWeight: '800', color: '#0B1330', fontSize: 18 },
-  requestList: { marginTop: 8, gap: 4 },
-  requestItem: { color: '#111827' },
-  requestDate: { marginTop: 10, color: '#6B7280' },
+  // Request History Styles
+  requestHistoryContainer: { 
+    marginTop: 12,
+    gap: 12,
+  },
+  requestCard: { 
+    backgroundColor: '#F5F7FB', 
+    borderRadius: 12, 
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  requestBadge: { 
+    alignSelf: 'flex-start', 
+    paddingVertical: 4, 
+    paddingHorizontal: 10, 
+    borderRadius: 6, 
+    marginBottom: 8 
+  },
+  requestBadgeText: { 
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  requestHeaderRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 10,
+    marginBottom: 8,
+  },
+  requestHeaderText: {
+    flex: 1,
+  },
+  requestIcon: { 
+    width: 20, 
+    height: 20, 
+    resizeMode: 'contain',
+    tintColor: '#6B7280',
+  },
+  requestTitle: { 
+    fontWeight: '800', 
+    color: '#0B1330', 
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  requestId: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  requestList: { 
+    marginTop: 8, 
+    gap: 4 
+  },
+  requestItem: { 
+    color: '#111827',
+    fontSize: 14,
+  },
+  requestDate: { 
+    marginTop: 10, 
+    color: '#6B7280',
+    fontSize: 12,
+  },
+
+  // View More Button
+  viewMoreButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 8,
+  },
+  viewMoreText: {
+    color: '#6366F1',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  viewMoreIcon: {
+    width: 16,
+    height: 16,
+    tintColor: '#6366F1',
+  },
+
+  // Empty State Styles
+  emptyRequestHistory: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  emptyIcon: {
+    width: 48,
+    height: 48,
+    tintColor: '#9CA3AF',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyMessage: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyButton: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 
   tabBar: {
     position: 'absolute',

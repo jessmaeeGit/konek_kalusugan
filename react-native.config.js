@@ -3,7 +3,7 @@ module.exports = {
     android: {
       sourceDir: './android',
       appName: 'app',
-      packageName: 'com.iliganmart',
+      packageName: 'com.konek_kalusugan',
     },
   },
 };

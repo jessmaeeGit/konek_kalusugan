@@ -383,10 +383,12 @@ function AppContent() {
           onViewDetails={() => { setSelectedProgram('wellness'); push('ProgramDetails'); }}
           onGoPrograms={() => push('Programs')}
           onGoRequests={() => push('MedicineRequestPortal')}
+          onGoMedicineRequest={() => push('MedicineRequestPortal')}
           onGoSettings={() => push('Settings')}
           onGoNotificationCenter={() => push('NotificationCenter')}
           profile={userProfile}
           notificationCount={notifications.filter((n) => !n.read).length}
+          requestHistory={requestHistory}
         />
       ) : current === 'Register' ? (
         <Register
