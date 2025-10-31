@@ -6,7 +6,16 @@
  */
 
 import { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, useColorScheme, View, Image, Text, TouchableOpacity, Alert } from 'react-native';
+import {
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   SafeAreaProvider,
@@ -28,7 +37,9 @@ import EditProfile from './screens/editProfile';
 import Account from './screens/account';
 import ChangePassword from './screens/changePassword';
 import Notifications from './screens/notifications';
-import NotificationCenter, { type NotificationItem } from './screens/notificationCenter';
+import NotificationCenter, {
+  type NotificationItem,
+} from './screens/notificationCenter';
 import HelpFaq from './screens/helpFaq';
 import ContactSupport from './screens/contactSupport';
 import MedicineRequestPortal from './screens/medicineRequestPortal';
@@ -98,16 +109,18 @@ function AppContent() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const [storedHasSeenIntro, storedUserData, lastLoginTime] = await Promise.all([
-          AsyncStorage.getItem('@has_seen_intro'),
-          AsyncStorage.getItem('@user_data'),
-          AsyncStorage.getItem('@last_login_time')
-        ]);
+        const [storedHasSeenIntro, storedUserData, lastLoginTime] =
+          await Promise.all([
+            AsyncStorage.getItem('@has_seen_intro'),
+            AsyncStorage.getItem('@user_data'),
+            AsyncStorage.getItem('@last_login_time'),
+          ]);
 
         // Check if the session has expired (24 hours)
         const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         const now = new Date().getTime();
-        const isSessionValid = lastLoginTime && (now - parseInt(lastLoginTime)) < SESSION_DURATION;
+        const isSessionValid =
+          lastLoginTime && now - parseInt(lastLoginTime) < SESSION_DURATION;
 
         if (storedHasSeenIntro === 'true') {
           setHasSeenIntro(true);
@@ -133,11 +146,15 @@ function AppContent() {
 
     checkSession();
   }, []);
-  const [selectedProgram, setSelectedProgram] = useState<'wellness' | 'nutri' | 'anti' | undefined>(undefined);
+  const [selectedProgram, setSelectedProgram] = useState<
+    'wellness' | 'nutri' | 'anti' | undefined
+  >(undefined);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notifFlags, setNotifFlags] = useState<Record<string, boolean>>({});
-  const [userProfile, setUserProfile] = useState<{ name: string; email: string; avatarUri?: string } | undefined>(undefined);
-  
+  const [userProfile, setUserProfile] = useState<
+    { name: string; email: string; avatarUri?: string } | undefined
+  >(undefined);
+
   // Uploaded Prescription State
   const [uploadedPrescription, setUploadedPrescription] = useState<{
     id: string;
@@ -145,25 +162,29 @@ function AppContent() {
     name: string;
     type: string;
   } | null>(null);
-  
+
   // Request History State
-  const [requestHistory, setRequestHistory] = useState<Array<{
-    id: string;
-    patientName: string;
-    date: string;
-    medicines: string[];
-    deliveryAddress: string;
-    status: string;
-    prescriptionImage: any;
-    emailAddress: string;
-    phoneNumber: string;
-    additionalNotes: string;
-  }>>([]);
+  const [requestHistory, setRequestHistory] = useState<
+    Array<{
+      id: string;
+      patientName: string;
+      date: string;
+      medicines: string[];
+      deliveryAddress: string;
+      status: string;
+      prescriptionImage: any;
+      emailAddress: string;
+      phoneNumber: string;
+      additionalNotes: string;
+    }>
+  >([]);
 
   const current = stack[stack.length - 1];
-  const push = (s: Screen) => setStack((st) => [...st, s]);
-  const pop = () => setStack((st) => (st.length > 1 ? st.slice(0, st.length - 1) : st));
-  const replace = (s: Screen) => setStack((st) => (st.length ? [...st.slice(0, st.length - 1), s] : [s]));
+  const push = (s: Screen) => setStack(st => [...st, s]);
+  const pop = () =>
+    setStack(st => (st.length > 1 ? st.slice(0, st.length - 1) : st));
+  const replace = (s: Screen) =>
+    setStack(st => (st.length ? [...st.slice(0, st.length - 1), s] : [s]));
 
   // Function to add program reminder notification
   const addProgramReminder = (programName: string, programDate: string) => {
@@ -175,7 +196,7 @@ function AppContent() {
       icon: require('./images/icons/bell.png'),
       time: 'Just now',
     };
-    
+
     setNotifications(prev => [newNotification, ...prev]);
   };
 
@@ -190,20 +211,22 @@ function AppContent() {
     const newRequest = {
       id: `#${String(requestHistory.length + 1).padStart(4, '0')}`,
       patientName: requestData.patientName,
-      date: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      date: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       }),
       medicines: ['Prescription medicines'], // Placeholder - could be enhanced to track actual medicines
       deliveryAddress: requestData.deliveryAddress,
       status: 'pending', // Default status - pending until admin approval
-      prescriptionImage: uploadedPrescription ? { uri: uploadedPrescription.uri } : require('./images/icons/capsule.png'),
+      prescriptionImage: uploadedPrescription
+        ? { uri: uploadedPrescription.uri }
+        : require('./images/icons/capsule.png'),
       emailAddress: requestData.emailAddress,
       phoneNumber: requestData.phoneNumber,
       additionalNotes: requestData.additionalNotes,
     };
-    
+
     setRequestHistory(prev => [newRequest, ...prev]); // Add to beginning of array
     setUploadedPrescription(null); // Clear the uploaded prescription after adding to history
   };
@@ -227,8 +250,13 @@ function AppContent() {
     return diffMs > 0 ? `${days}d left` : `${days}d ago`;
   };
 
-  const addNotification = (n: Omit<NotificationItem, 'id' | 'read' | 'time'> & { time?: string; read?: boolean }) => {
-    setNotifications((prev) => [
+  const addNotification = (
+    n: Omit<NotificationItem, 'id' | 'read' | 'time'> & {
+      time?: string;
+      read?: boolean;
+    },
+  ) => {
+    setNotifications(prev => [
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         title: n.title,
@@ -319,7 +347,17 @@ function AppContent() {
   }, [showSplash, hasSeenIntro, isLoggedIn]);
 
   return (
-    <View style={[styles.container, { paddingTop: safeAreaInsets.top, paddingBottom: safeAreaInsets.bottom, paddingLeft: safeAreaInsets.left, paddingRight: safeAreaInsets.right }]}> 
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: safeAreaInsets.top,
+          paddingBottom: safeAreaInsets.bottom,
+          paddingLeft: safeAreaInsets.left,
+          paddingRight: safeAreaInsets.right,
+        },
+      ]}
+    >
       {showSplash ? (
         <Image source={require('./images/kklogo.png')} style={styles.logo} />
       ) : current === 'ProgramDetails' ? (
@@ -328,10 +366,22 @@ function AppContent() {
         <Programs
           onBack={pop}
           onGoHome={() => push('Home')}
-          onViewDetails={() => { setSelectedProgram(undefined); push('ProgramDetails'); }}
-          onViewOngoing={() => { setSelectedProgram('wellness'); push('ProgramDetails'); }}
-          onViewUpcoming={() => { setSelectedProgram('nutri'); push('ProgramDetails'); }}
-          onViewCompleted={() => { setSelectedProgram('anti'); push('ProgramDetails'); }}
+          onViewDetails={() => {
+            setSelectedProgram(undefined);
+            push('ProgramDetails');
+          }}
+          onViewOngoing={() => {
+            setSelectedProgram('wellness');
+            push('ProgramDetails');
+          }}
+          onViewUpcoming={() => {
+            setSelectedProgram('nutri');
+            push('ProgramDetails');
+          }}
+          onViewCompleted={() => {
+            setSelectedProgram('anti');
+            push('ProgramDetails');
+          }}
           onGoRequests={() => push('MedicineRequestPortal')}
           onGoSettings={() => push('Settings')}
           onAddProgramReminder={addProgramReminder}
@@ -387,7 +437,10 @@ function AppContent() {
           profile={userProfile}
           onSignOut={async () => {
             try {
-              await AsyncStorage.multiRemove(['@user_data', '@last_login_time']);
+              await AsyncStorage.multiRemove([
+                '@user_data',
+                '@last_login_time',
+              ]);
               setIsLoggedIn(false);
               setUserProfile(undefined);
               setStack(['Login']);
@@ -405,7 +458,15 @@ function AppContent() {
         <EditProfile
           onBack={pop}
           profile={userProfile}
-          onSaved={(p: { name: string; email: string; phone?: string; address?: string; dob?: string; gender?: string; avatarUri?: string }) => {
+          onSaved={(p: {
+            name: string;
+            email: string;
+            phone?: string;
+            address?: string;
+            dob?: string;
+            gender?: string;
+            avatarUri?: string;
+          }) => {
             setUserProfile(p);
             pop();
           }}
@@ -420,28 +481,35 @@ function AppContent() {
         <NotificationCenter
           onBack={pop}
           items={notifications}
-          onToggleRead={(id) =>
-            setNotifications((arr) => arr.map((n) => (n.id === id ? { ...n, read: !n.read } : n)))
+          onToggleRead={id =>
+            setNotifications(arr =>
+              arr.map(n => (n.id === id ? { ...n, read: !n.read } : n)),
+            )
           }
-          onMarkAllRead={() => setNotifications((arr) => arr.map((n) => ({ ...n, read: true })))}
+          onMarkAllRead={() =>
+            setNotifications(arr => arr.map(n => ({ ...n, read: true })))
+          }
           onClear={() => setNotifications([])}
         />
       ) : current === 'Home' ? (
         <Home
-          onViewDetails={() => { setSelectedProgram('wellness'); push('ProgramDetails'); }}
+          onViewDetails={() => {
+            setSelectedProgram('wellness');
+            push('ProgramDetails');
+          }}
           onGoPrograms={() => push('Programs')}
           onGoRequests={() => push('MedicineRequestPortal')}
           onGoMedicineRequest={() => push('MedicineRequestPortal')}
           onGoSettings={() => push('Settings')}
           onGoNotificationCenter={() => push('NotificationCenter')}
           profile={userProfile}
-          notificationCount={notifications.filter((n) => !n.read).length}
+          notificationCount={notifications.filter(n => !n.read).length}
           requestHistory={requestHistory}
         />
       ) : current === 'Register' ? (
         <Register
           onBack={pop}
-          onComplete={(p) => {
+          onComplete={p => {
             setUserProfile({ name: p.name, email: p.email });
             replace('LoginForm');
           }}
@@ -464,7 +532,7 @@ function AppContent() {
       ) : current === 'ResetPassword' ? (
         <ResetPassword
           onBack={() => replace('VerifyEmail')}
-          onSubmit={(_pwd) => {
+          onSubmit={_pwd => {
             replace('Login');
           }}
         />
@@ -475,26 +543,30 @@ function AppContent() {
           onForgot={() => push('ForgotPassword')}
           onLogin={async (email, password, userData) => {
             try {
-              console.log('App.tsx: Login successful, processing user data:', userData);
-              
+              console.log(
+                'App.tsx: Login successful, processing user data:',
+                userData,
+              );
+
               // Create user profile from backend response
               const profile = {
-                name: userData?.full_name || userData?.name || email.split('@')[0],
+                name:
+                  userData?.full_name || userData?.name || email.split('@')[0],
                 email: email,
                 id: userData?.id,
-                ...userData // Include any additional user data from backend
+                ...userData, // Include any additional user data from backend
               };
-              
+
               const now = new Date().getTime().toString();
               await Promise.all([
                 AsyncStorage.setItem('@user_data', JSON.stringify(profile)),
-                AsyncStorage.setItem('@last_login_time', now)
+                AsyncStorage.setItem('@last_login_time', now),
               ]);
-              
+
               setUserProfile(profile);
               setIsLoggedIn(true);
               setStack(['Home']);
-              
+
               console.log('App.tsx: Login flow completed successfully');
             } catch (error) {
               console.error('Error saving session:', error);
@@ -503,16 +575,21 @@ function AppContent() {
           }}
         />
       ) : current === 'Login' ? (
-        <Login onLogin={() => push('LoginForm')} onRegister={() => push('Register')} />
+        <Login
+          onLogin={() => push('LoginForm')}
+          onRegister={() => push('Register')}
+        />
       ) : (
-        <IntroScreen onDone={async () => {
-          try {
-            await AsyncStorage.setItem('@has_seen_intro', 'true');
-            setHasSeenIntro(true);
-          } catch (error) {
-            console.error('Error saving intro state:', error);
-          }
-        }} />
+        <IntroScreen
+          onDone={async () => {
+            try {
+              await AsyncStorage.setItem('@has_seen_intro', 'true');
+              setHasSeenIntro(true);
+            } catch (error) {
+              console.error('Error saving intro state:', error);
+            }
+          }}
+        />
       )}
     </View>
   );
@@ -521,9 +598,9 @@ function AppContent() {
 function IntroScreen({ onDone }: { onDone: () => void }) {
   const [index, setIndex] = useState(0);
 
-  const goLeft = () => setIndex((i) => Math.max(0, i - 1));
+  const goLeft = () => setIndex(i => Math.max(0, i - 1));
   const goRight = () =>
-    setIndex((i) => {
+    setIndex(i => {
       if (i >= introPages.length - 1) {
         onDone();
         return i;
@@ -545,11 +622,19 @@ function IntroScreen({ onDone }: { onDone: () => void }) {
       </View>
 
       <View style={styles.navCard}>
-        <TouchableOpacity onPress={goLeft} accessibilityRole="button" accessibilityLabel="Previous">
+        <TouchableOpacity
+          onPress={goLeft}
+          accessibilityRole="button"
+          accessibilityLabel="Previous"
+        >
           <Text style={styles.navArrow}>←</Text>
         </TouchableOpacity>
         <View style={styles.navDivider} />
-        <TouchableOpacity onPress={goRight} accessibilityRole="button" accessibilityLabel="Next">
+        <TouchableOpacity
+          onPress={goRight}
+          accessibilityRole="button"
+          accessibilityLabel="Next"
+        >
           <Text style={styles.navArrow}>→</Text>
         </TouchableOpacity>
       </View>

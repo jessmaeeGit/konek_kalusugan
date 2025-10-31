@@ -42,12 +42,15 @@ export default function LoginForm({
 
     setIsLoading(true);
     try {
-      console.log('Attempting login with:', { email: email.trim(), password: '***' });
-      
+      console.log('Attempting login with:', {
+        email: email.trim(),
+        password: '***',
+      });
+
       const response = await fetch('http://www.junssei.site/api/login', {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -58,26 +61,26 @@ export default function LoginForm({
 
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
-      
+
       // Check if response is ok
       if (!response.ok) {
         const errorText = await response.text();
         console.error('HTTP Error Response:', errorText);
-        
+
         if (response.status === 401) {
           Alert.alert(
             'Login Failed',
-            'Invalid email or password. Please check your credentials and try again.'
+            'Invalid email or password. Please check your credentials and try again.',
           );
         } else if (response.status >= 500) {
           Alert.alert(
             'Server Error',
-            'Server is currently unavailable. Please try again later.'
+            'Server is currently unavailable. Please try again later.',
           );
         } else {
           Alert.alert(
             'Error',
-            `Login failed with status ${response.status}. Please try again.`
+            `Login failed with status ${response.status}. Please try again.`,
           );
         }
         return;
@@ -95,14 +98,14 @@ export default function LoginForm({
         console.log('Login failed:', data.message);
         Alert.alert(
           'Login Failed',
-          data.message || 'Invalid email or password'
+          data.message || 'Invalid email or password',
         );
       }
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert(
         'Connection Error',
-        'Failed to connect to the server. Please check your internet connection and try again.'
+        'Failed to connect to the server. Please check your internet connection and try again.',
       );
     } finally {
       setIsLoading(false);
