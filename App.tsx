@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, useColorScheme, View, Image, Text, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -91,6 +92,47 @@ function AppContent() {
   const [forgotEmail, setForgotEmail] = useState<string | undefined>(undefined);
   const [hasSeenIntro, setHasSeenIntro] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for stored session on app start
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const [storedHasSeenIntro, storedUserData, lastLoginTime] = await Promise.all([
+          AsyncStorage.getItem('@has_seen_intro'),
+          AsyncStorage.getItem('@user_data'),
+          AsyncStorage.getItem('@last_login_time')
+        ]);
+
+        // Check if the session has expired (24 hours)
+        const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const now = new Date().getTime();
+        const isSessionValid = lastLoginTime && (now - parseInt(lastLoginTime)) < SESSION_DURATION;
+
+        if (storedHasSeenIntro === 'true') {
+          setHasSeenIntro(true);
+        }
+
+        if (storedUserData && isSessionValid) {
+          const userData = JSON.parse(storedUserData);
+          setUserProfile(userData);
+          setIsLoggedIn(true);
+          setStack(['Home']);
+        } else {
+          // Clear stored data if session expired
+          await AsyncStorage.multiRemove(['@user_data', '@last_login_time']);
+          setStack(['Intro']);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
+        setShowSplash(false);
+      }
+    };
+
+    checkSession();
+  }, []);
   const [selectedProgram, setSelectedProgram] = useState<'wellness' | 'nutri' | 'anti' | undefined>(undefined);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notifFlags, setNotifFlags] = useState<Record<string, boolean>>({});
@@ -343,10 +385,16 @@ function AppContent() {
           onGoHelp={() => push('HelpFaq')}
           onGoContact={() => push('ContactSupport')}
           profile={userProfile}
-          onSignOut={() => {
-            setIsLoggedIn(false);
-            setUserProfile(undefined);
-            setStack(['Login']);
+          onSignOut={async () => {
+            try {
+              await AsyncStorage.multiRemove(['@user_data', '@last_login_time']);
+              setIsLoggedIn(false);
+              setUserProfile(undefined);
+              setStack(['Login']);
+            } catch (error) {
+              console.error('Error logging out:', error);
+              Alert.alert('Error', 'Failed to logout properly');
+            }
           }}
         />
       ) : current === 'HelpFaq' ? (
@@ -425,19 +473,46 @@ function AppContent() {
           onBack={() => replace('Login')}
           onRegister={() => push('Register')}
           onForgot={() => push('ForgotPassword')}
-          onLogin={(email) => {
-            if (!userProfile || !userProfile.email || userProfile.email.toLowerCase() !== email.toLowerCase()) {
-              Alert.alert('Account not found', 'Please register before logging in.');
-              return;
+          onLogin={async (email, password, userData) => {
+            try {
+              console.log('App.tsx: Login successful, processing user data:', userData);
+              
+              // Create user profile from backend response
+              const profile = {
+                name: userData?.full_name || userData?.name || email.split('@')[0],
+                email: email,
+                id: userData?.id,
+                ...userData // Include any additional user data from backend
+              };
+              
+              const now = new Date().getTime().toString();
+              await Promise.all([
+                AsyncStorage.setItem('@user_data', JSON.stringify(profile)),
+                AsyncStorage.setItem('@last_login_time', now)
+              ]);
+              
+              setUserProfile(profile);
+              setIsLoggedIn(true);
+              setStack(['Home']);
+              
+              console.log('App.tsx: Login flow completed successfully');
+            } catch (error) {
+              console.error('Error saving session:', error);
+              Alert.alert('Error', 'Failed to save login session');
             }
-            setIsLoggedIn(true);
-            setStack(['Home']);
           }}
         />
       ) : current === 'Login' ? (
         <Login onLogin={() => push('LoginForm')} onRegister={() => push('Register')} />
       ) : (
-        <IntroScreen onDone={() => setHasSeenIntro(true)} />
+        <IntroScreen onDone={async () => {
+          try {
+            await AsyncStorage.setItem('@has_seen_intro', 'true');
+            setHasSeenIntro(true);
+          } catch (error) {
+            console.error('Error saving intro state:', error);
+          }
+        }} />
       )}
     </View>
   );
